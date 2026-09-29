@@ -1,9 +1,19 @@
-CARGO_MANIFEST := md-documents-reader/Cargo.toml
+CARGO_MANIFEST := backend/Cargo.toml
+FRONTEND_DIR := frontend
+TAURI_CLI := ../frontend/node_modules/.bin/tauri
 
-.PHONY: check fmt fmt-check lint run test
+.PHONY: check frontend-check backend-check fmt fmt-check install lint run test
 
-check: fmt-check lint
+check: frontend-check backend-check
+
+frontend-check:
+	npm --prefix $(FRONTEND_DIR) run build
+
+backend-check: fmt-check lint
 	cargo check --manifest-path $(CARGO_MANIFEST) --all-targets --all-features
+
+install:
+	npm --prefix $(FRONTEND_DIR) ci
 
 test:
 	cargo test --manifest-path $(CARGO_MANIFEST) --all-targets --all-features
@@ -18,4 +28,4 @@ lint:
 	cargo clippy --manifest-path $(CARGO_MANIFEST) --all-targets --all-features -- -D warnings
 
 run:
-	cargo run --manifest-path $(CARGO_MANIFEST)
+	cd backend && $(TAURI_CLI) dev

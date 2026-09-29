@@ -1,26 +1,51 @@
 # md-documents-reader
 
-Markdown 文書をブラウザで読むための PoC です。Rust のHTTPサーバーがテスト用MarkdownをHTMLへ変換し、フロントエンドがAPI経由で取得して表示します。
+Tauri 2とSvelte 5でMarkdown文書を読むデスクトップアプリのPoCです。Rustバックエンドが同梱MarkdownをHTMLへ変換し、SvelteフロントエンドがTauriコマンド経由で取得して表示します。
+
+## ディレクトリ構成
+
+```text
+backend/                 # Tauri/Rustバックエンド
+  content/sample.md      # 表示するテスト文書
+  src/commands.rs        # フロントエンドへ公開するTauriコマンド
+  src/document.rs        # Markdown変換
+  tauri.conf.json        # デスクトップアプリ設定
+frontend/                # Svelte/Viteフロントエンド
+  src/App.svelte         # 文書表示画面
+```
+
+## 前提
+
+- Rust 1.98.1
+- Node.js 22.12以降
+- OSごとのTauri開発用依存関係
 
 ## 起動
 
-リポジトリルートで次を実行します。
+初回のみフロントエンド依存関係をインストールします。
+
+```bash
+make install
+```
+
+その後、Tauriデスクトップアプリを起動します。
 
 ```bash
 make run
 ```
 
-起動後、[http://127.0.0.1:3000](http://127.0.0.1:3000) をブラウザで開きます。
-
-ポートを変える場合は `MD_READER_ADDR` を指定します。
+## 確認
 
 ```bash
-MD_READER_ADDR=127.0.0.1:8080 make run
+make check
+make test
 ```
 
-## PoC の範囲
+`make check` はSvelteのプロダクションビルドとRustのformat、Clippy、compile checkを実行します。
 
-- `md-documents-reader/content/sample.md` の1文書を表示する
+## PoCの範囲
+
+- `backend/content/sample.md` の1文書をデスクトップ画面に表示する
 - 対応するMarkdownは見出し、段落、箇条書き、コードブロックに限定する
-- Markdown内のHTMLは文字列としてエスケープする
+- Markdown内のHTMLはRust側で文字列としてエスケープする
 - 文書の選択、編集、保存、検索は対象外とする
