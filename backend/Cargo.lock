@@ -1783,6 +1783,7 @@ version = "0.1.0"
 dependencies = [
  "pulldown-cmark",
  "serde",
+ "serde_json",
  "tauri",
  "tauri-build",
  "yaml_serde",

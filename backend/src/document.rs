@@ -3,8 +3,7 @@ use std::{error::Error, fmt};
 use pulldown_cmark::{CowStr, Event, HeadingLevel, Options, Parser, Tag, TagEnd, html};
 use serde::Deserialize;
 
-const FORMAT_VERSION: u32 = 1;
-const SAMPLE_MARKDOWN: &str = include_str!("../content/sample.md");
+const FORMAT_VERSION: u32 = 2;
 
 #[derive(Debug, Default, Deserialize, PartialEq, serde::Serialize)]
 #[serde(rename_all = "lowercase")]
@@ -14,10 +13,22 @@ pub enum DocumentTheme {
     Editorial,
 }
 
+#[derive(Debug, Clone, Deserialize, Eq, Ord, PartialEq, PartialOrd, serde::Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Categories {
+    pub large: String,
+    pub medium: String,
+    pub small: String,
+}
+
 #[derive(Debug, serde::Serialize)]
 pub struct Document {
     pub title: String,
     pub theme: DocumentTheme,
+    pub categories: Option<Categories>,
+    pub page: Option<u32>,
+    pub tags: Vec<String>,
+    pub description: Option<String>,
     pub html: String,
 }
 
@@ -70,18 +81,63 @@ impl fmt::Display for DocumentError {
 
 impl Error for DocumentError {}
 
-pub fn sample_document() -> Result<Document, DocumentError> {
-    parse_document(SAMPLE_MARKDOWN)
-}
-
 pub fn parse_document(markdown: &str) -> Result<Document, DocumentError> {
     let (metadata_source, body) = split_front_matter(markdown)?;
     let metadata: DocumentMetadata = yaml_serde::from_str(metadata_source)
         .map_err(|error| DocumentError::InvalidFrontMatter(error.to_string()))?;
 
-    if metadata.format_version != FORMAT_VERSION {
+    if !matches!(metadata.format_version, 1 | FORMAT_VERSION) {
         return Err(DocumentError::UnsupportedFormatVersion(
             metadata.format_version,
+        ));
+    }
+
+    if metadata.format_version == 1
+        && (metadata.categories.is_some()
+            || metadata.page.is_some()
+            || metadata.tags.is_some()
+            || metadata.description.is_some())
+    {
+        return Err(DocumentError::InvalidFrontMatter(
+            "v1ではcategories、page、tags、descriptionを指定できません".to_owned(),
+        ));
+    }
+    let categories = metadata.categories.map(|mut categories| {
+        categories.large = categories.large.trim().to_owned();
+        categories.medium = categories.medium.trim().to_owned();
+        categories.small = categories.small.trim().to_owned();
+        categories
+    });
+    let tags = metadata.tags.unwrap_or_default();
+    if metadata.format_version == FORMAT_VERSION
+        && (categories.is_none() || metadata.page.is_none())
+    {
+        return Err(DocumentError::InvalidFrontMatter(
+            "v2ではcategoriesとpageが必須です".to_owned(),
+        ));
+    }
+    if categories.as_ref().is_some_and(|categories| {
+        [&categories.large, &categories.medium, &categories.small]
+            .iter()
+            .any(|value| value.trim().is_empty())
+    }) || tags.iter().any(|value| value.trim().is_empty())
+    {
+        return Err(DocumentError::InvalidFrontMatter(
+            "categoriesとtagsに空の値は指定できません".to_owned(),
+        ));
+    }
+    if metadata.page == Some(0) {
+        return Err(DocumentError::InvalidFrontMatter(
+            "pageには1以上の整数を指定してください".to_owned(),
+        ));
+    }
+    if metadata
+        .description
+        .as_ref()
+        .is_some_and(|value| value.trim().is_empty())
+    {
+        return Err(DocumentError::InvalidFrontMatter(
+            "descriptionに空の値は指定できません".to_owned(),
         ));
     }
 
@@ -100,6 +156,10 @@ pub fn parse_document(markdown: &str) -> Result<Document, DocumentError> {
     Ok(Document {
         title: title.to_owned(),
         theme: metadata.theme,
+        categories,
+        page: metadata.page,
+        tags,
+        description: metadata.description,
         html: document_html,
     })
 }
@@ -111,6 +171,10 @@ struct DocumentMetadata {
     title: String,
     #[serde(default)]
     theme: DocumentTheme,
+    categories: Option<Categories>,
+    page: Option<u32>,
+    tags: Option<Vec<String>>,
+    description: Option<String>,
 }
 
 fn split_front_matter(markdown: &str) -> Result<(&str, &str), DocumentError> {
@@ -338,7 +402,7 @@ fn escape_html(value: &str) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::{DocumentError, DocumentTheme, parse_document, sample_document};
+    use super::{DocumentError, DocumentTheme, parse_document};
 
     fn markdown(front_matter: &str, body: &str) -> String {
         format!("---\n{front_matter}\n---\n\n{body}")
@@ -357,6 +421,55 @@ mod tests {
         assert!(document.html.starts_with("<h1>設計ノート</h1>"));
         assert!(document.html.contains("<h2>本文</h2>"));
         assert!(document.html.contains("<strong>重要</strong>"));
+    }
+
+    #[test]
+    fn reads_version_two_index_metadata() {
+        let source = markdown(
+            "format_version: 2\ntitle: 設計ノート\ncategories:\n  large: 設計\n  medium: 表示\n  small: Markdown\npage: 3\ntags: [テーマ]\ndescription: 概要です。",
+            "本文",
+        );
+        let document = parse_document(&source).unwrap();
+
+        let categories = document.categories.unwrap();
+        assert_eq!(categories.large, "設計");
+        assert_eq!(categories.medium, "表示");
+        assert_eq!(categories.small, "Markdown");
+        assert_eq!(document.page, Some(3));
+        assert_eq!(document.tags, ["テーマ"]);
+        assert_eq!(document.description.as_deref(), Some("概要です。"));
+    }
+
+    #[test]
+    fn rejects_missing_or_invalid_version_two_categories_and_page() {
+        for front_matter in [
+            "format_version: 2\ntitle: 設計ノート",
+            "format_version: 2\ntitle: 設計ノート\ncategories:\n  large: 設計\n  medium: 表示\n  small: Markdown",
+            "format_version: 2\ntitle: 設計ノート\ncategories:\n  large: 設計\n  medium: 表示\n  small: '  '\npage: 1",
+            "format_version: 2\ntitle: 設計ノート\ncategories:\n  large: 設計\n  medium: 表示\npage: 1",
+            "format_version: 2\ntitle: 設計ノート\ncategories:\n  large: 設計\n  medium: 表示\n  small: Markdown\npage: 0",
+            "format_version: 2\ntitle: 設計ノート\ncategories:\n  large: 設計\n  medium: 表示\n  small: Markdown\npage: 1.5",
+        ] {
+            assert!(matches!(
+                parse_document(&markdown(front_matter, "本文")),
+                Err(DocumentError::InvalidFrontMatter(_))
+            ));
+        }
+    }
+
+    #[test]
+    fn rejects_invalid_version_two_optional_metadata() {
+        for front_matter in [
+            "format_version: 2\ntitle: 設計ノート\ncategories:\n  large: 設計\n  medium: 表示\n  small: Markdown\npage: 1\ntags: ['  ']",
+            "format_version: 2\ntitle: 設計ノート\ncategories:\n  large: 設計\n  medium: 表示\n  small: Markdown\npage: 1\ndescription: '  '",
+            "format_version: 2\ntitle: 設計ノート\ncategories:\n  large: 設計\n  medium: 表示\n  small: Markdown\npage: 1\ntags: 12",
+            "format_version: 1\ntitle: 設計ノート\npage: 1",
+        ] {
+            assert!(matches!(
+                parse_document(&markdown(front_matter, "本文")),
+                Err(DocumentError::InvalidFrontMatter(_))
+            ));
+        }
     }
 
     #[test]
@@ -400,10 +513,10 @@ mod tests {
 
     #[test]
     fn rejects_an_unsupported_format_version() {
-        let source = markdown("format_version: 2\ntitle: 設計ノート", "本文");
+        let source = markdown("format_version: 3\ntitle: 設計ノート", "本文");
         let error = parse_document(&source).unwrap_err();
 
-        assert_eq!(error, DocumentError::UnsupportedFormatVersion(2));
+        assert_eq!(error, DocumentError::UnsupportedFormatVersion(3));
     }
 
     #[test]
@@ -523,11 +636,16 @@ mod tests {
     }
 
     #[test]
-    fn bundled_document_conforms_to_version_one() {
-        let document = sample_document().unwrap();
+    fn bundled_document_conforms_to_version_two() {
+        let document = parse_document(include_str!("../content/sample.md")).unwrap();
 
         assert_eq!(document.title, "Markdownテーマ設計");
         assert_eq!(document.theme, DocumentTheme::Technical);
+        let categories = document.categories.unwrap();
+        assert_eq!(categories.large, "設計");
+        assert_eq!(categories.medium, "表示");
+        assert_eq!(categories.small, "Markdown");
+        assert_eq!(document.page, Some(1));
         assert!(document.html.starts_with("<h1>Markdownテーマ設計</h1>"));
         assert!(!document.html.contains("theme: technical"));
     }
