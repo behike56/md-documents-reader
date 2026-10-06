@@ -4,8 +4,24 @@
 
   let documentData = null;
   let errorMessage = "";
+  let colorMode = "light";
+
+  function setColorMode(mode) {
+    colorMode = mode;
+    document.documentElement.dataset.colorMode = mode;
+  }
+
+  function toggleColorMode() {
+    setColorMode(colorMode === "dark" ? "light" : "dark");
+  }
 
   onMount(async () => {
+    setColorMode(
+      window.matchMedia("(prefers-color-scheme: dark)").matches
+        ? "dark"
+        : "light",
+    );
+
     try {
       documentData = await invoke("get_document");
       document.title = `${documentData.title} | Markdown Reader`;
@@ -22,47 +38,49 @@
   />
 </svelte:head>
 
-<header><strong>Markdown Reader</strong></header>
+<header>
+  <strong>Markdown Reader</strong>
+  <button type="button" onclick={toggleColorMode} aria-pressed={colorMode === "dark"}>
+    {colorMode === "dark" ? "ライト" : "ダーク"}表示
+  </button>
+</header>
 
 <main>
   {#if errorMessage}
     <p class="status error">{errorMessage}</p>
   {:else if documentData}
-    <article>{@html documentData.html}</article>
+    <article
+      class="markdown-body"
+      data-document-theme={documentData.theme}
+    >{@html documentData.html}</article>
   {:else}
     <p class="status">文書を読み込んでいます…</p>
   {/if}
 </main>
 
 <style>
-  :global(:root) {
-    color-scheme: light;
-    font-family: ui-sans-serif, system-ui, sans-serif;
-    background: #f3f5f7;
-    color: #172033;
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.75rem max(1rem, calc((100% - 760px) / 2));
+    background: var(--color-header);
+    color: var(--color-header-text);
   }
-
-  :global(body) { margin: 0; }
-  header { padding: 1rem 2rem; background: #172033; color: white; }
   header strong { font-size: 1.05rem; }
+  button {
+    padding: 0.45rem 0.75rem;
+    border: 1px solid var(--color-header-border);
+    border-radius: 0.5rem;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+  }
+  button:hover { background: var(--color-header-hover); }
+  button:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
   main { width: min(760px, calc(100% - 2rem)); margin: 2rem auto; }
-  article {
-    padding: clamp(1.5rem, 4vw, 3rem);
-    border: 1px solid #dce1e8;
-    border-radius: 12px;
-    background: white;
-    box-shadow: 0 12px 32px rgb(23 32 51 / 8%);
-    line-height: 1.75;
-  }
-  article :global(h1), article :global(h2) { line-height: 1.25; }
-  article :global(h1) { padding-bottom: 0.5rem; border-bottom: 2px solid #e6eaf0; }
-  article :global(pre) {
-    overflow-x: auto;
-    padding: 1rem;
-    border-radius: 8px;
-    background: #172033;
-    color: #f7f9fc;
-  }
-  .status { color: #5c667a; }
-  .error { color: #a12626; }
+  .status { color: var(--color-text-muted); }
+  .error { color: var(--color-danger); }
 </style>

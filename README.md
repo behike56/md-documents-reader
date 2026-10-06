@@ -1,6 +1,6 @@
 # md-documents-reader
 
-Tauri 2とSvelte 5でMarkdown文書を読むデスクトップアプリのPoCです。Rustバックエンドが同梱MarkdownをHTMLへ変換し、SvelteフロントエンドがTauriコマンド経由で取得して表示します。
+Tauri 2とSvelte 5でMarkdown文書を読むデスクトップアプリのPoCです。Rustバックエンドが同梱Markdownを安全なHTMLへ変換し、SvelteフロントエンドがTauriコマンド経由で取得してテーマ付きで表示します。
 
 ## ディレクトリ構成
 
@@ -8,10 +8,12 @@ Tauri 2とSvelte 5でMarkdown文書を読むデスクトップアプリのPoCで
 backend/                 # Tauri/Rustバックエンド
   content/sample.md      # 表示するテスト文書
   src/commands.rs        # フロントエンドへ公開するTauriコマンド
-  src/document.rs        # Markdown変換
+  src/document.rs        # Front Matter検証とMarkdown変換
   tauri.conf.json        # デスクトップアプリ設定
 frontend/                # Svelte/Viteフロントエンド
-  src/App.svelte         # 文書表示画面
+  src/App.svelte         # 文書表示画面と表示モード切替
+  src/styles/tokens.css  # 配色などのデザイントークン
+  src/styles/markdown.css # Markdown本文専用の表示規則
 ```
 
 ## 前提
@@ -46,6 +48,11 @@ make test
 ## PoCの範囲
 
 - `backend/content/sample.md` の1文書をデスクトップ画面に表示する
-- 対応するMarkdownは見出し、段落、箇条書き、コードブロックに限定する
-- Markdown内のHTMLはRust側で文字列としてエスケープする
+- 入力は[Markdown Reader Format v1](./docs/design/markdown-format-v1.md)に従う
+- YAML Front Matterの`format_version`と`title`を必須とし、`theme: technical / editorial`を解釈する
+- 本文はCommonMarkを基礎とし、表、タスクリスト、取り消し線、自動リンクと`info` / `warning` / `success`の注意ブロックを扱う
+- Front Matterの`title`をH1として表示し、本文はH2から開始する
+- ライト／ダーク表示を切り替えられる
+- Markdown内のraw HTMLはRust側で文字列としてエスケープする
+- 画像は表示せず、許可していないURLスキームはリンクにしない
 - 文書の選択、編集、保存、検索は対象外とする
