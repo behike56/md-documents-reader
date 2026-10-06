@@ -2,6 +2,7 @@
 name = "md-documents-reader"
 version = "0.1.0"
 edition = "2024"
+default-run = "md-documents-reader"
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
@@ -9,5 +10,6 @@ tauri-build = { version = "2", features = [] }
 [dependencies]
 pulldown-cmark = "0.13"
 serde = { version = "1", features = ["derive"] }
+serde_json = "1"
 tauri = { version = "2", features = [] }
 yaml_serde = "0.10"

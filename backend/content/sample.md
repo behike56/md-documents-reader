@@ -1,7 +1,15 @@
 ---
-format_version: 1
+format_version: 2
 title: "Markdownテーマ設計"
 theme: technical
+categories:
+  large: 設計
+  medium: 表示
+  small: Markdown
+page: 1
+tags:
+  - テーマ
+description: Markdownの内容と表示テーマの分離を説明する文書。
 ---
 
 ## 概要

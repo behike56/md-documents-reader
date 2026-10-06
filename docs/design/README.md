@@ -6,6 +6,7 @@
 
 - [初期設計](./initial-design.md): 現在の実装を起点とした責務分割、処理フロー、品質方針のドラフト
 - [Markdown Reader Format v1](./markdown-format-v1.md): アプリケーションが読み込むMarkdownファイルのメタデータ、本文構文、エラー条件
+- [Markdown Reader Format v2](./markdown-format-v2.md): 一覧用メタデータとファイル構造JSONの生成
 
 ## ステータスの表記
 

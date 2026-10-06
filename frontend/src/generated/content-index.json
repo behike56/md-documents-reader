@@ -1,0 +1,200 @@
+{
+  "schema_version": 2,
+  "entries": [
+    {
+      "name": "design",
+      "path": "design",
+      "kind": "directory",
+      "children": [
+        {
+          "name": "content-index.md",
+          "path": "design/content-index.md",
+          "kind": "markdown",
+          "title": "ファイル構造JSON",
+          "categories": {
+            "large": "設計",
+            "medium": "一覧",
+            "small": "JSON生成"
+          },
+          "page": 1,
+          "tags": [
+            "JSON",
+            "生成"
+          ],
+          "description": "Markdownから一覧データを生成する流れ。",
+          "children": []
+        },
+        {
+          "name": "front-matter.md",
+          "path": "design/front-matter.md",
+          "kind": "markdown",
+          "title": "Front Matterの書き方",
+          "categories": {
+            "large": "設計",
+            "medium": "文書形式",
+            "small": "Front Matter"
+          },
+          "page": 1,
+          "tags": [
+            "YAML",
+            "メタデータ"
+          ],
+          "description": "タイトル、カテゴリー、ページ番号を指定する例。",
+          "children": []
+        },
+        {
+          "name": "markdown-body.md",
+          "path": "design/markdown-body.md",
+          "kind": "markdown",
+          "title": "Markdown本文の基本",
+          "categories": {
+            "large": "設計",
+            "medium": "文書形式",
+            "small": "Markdown本文"
+          },
+          "page": 1,
+          "tags": [
+            "見出し"
+          ],
+          "description": "文書本文で使う見出しと基本的なMarkdown構文。",
+          "children": []
+        }
+      ]
+    },
+    {
+      "name": "guide",
+      "path": "guide",
+      "kind": "directory",
+      "children": [
+        {
+          "name": "getting-started.md",
+          "path": "guide/getting-started.md",
+          "kind": "markdown",
+          "title": "はじめに",
+          "categories": {
+            "large": "利用ガイド",
+            "medium": "基本操作",
+            "small": "はじめに"
+          },
+          "page": 1,
+          "tags": [
+            "入門"
+          ],
+          "description": "Markdown Readerで文書を開くまでの基本的な流れ。",
+          "children": []
+        },
+        {
+          "name": "navigation.md",
+          "path": "guide/navigation.md",
+          "kind": "markdown",
+          "title": "ページを移動する",
+          "categories": {
+            "large": "利用ガイド",
+            "medium": "基本操作",
+            "small": "はじめに"
+          },
+          "page": 2,
+          "tags": [
+            "ナビゲーション"
+          ],
+          "description": "一覧ページと文書ページの間を移動する方法。",
+          "children": []
+        },
+        {
+          "name": "display-mode.md",
+          "path": "guide/display-mode.md",
+          "kind": "markdown",
+          "title": "表示モードを切り替える",
+          "categories": {
+            "large": "利用ガイド",
+            "medium": "基本操作",
+            "small": "表示設定"
+          },
+          "page": 1,
+          "tags": [
+            "配色"
+          ],
+          "description": "ライト表示とダーク表示の切り替え方。",
+          "children": []
+        }
+      ]
+    },
+    {
+      "name": "reference",
+      "path": "reference",
+      "kind": "directory",
+      "children": [
+        {
+          "name": "links.md",
+          "path": "reference/links.md",
+          "kind": "markdown",
+          "title": "リンクの例",
+          "categories": {
+            "large": "リファレンス",
+            "medium": "Markdown構文",
+            "small": "リンク"
+          },
+          "page": 1,
+          "tags": [
+            "構文"
+          ],
+          "description": "Markdownリンクとして許可されるURLの例。",
+          "children": []
+        },
+        {
+          "name": "tables.md",
+          "path": "reference/tables.md",
+          "kind": "markdown",
+          "title": "表とタスクリスト",
+          "categories": {
+            "large": "リファレンス",
+            "medium": "Markdown構文",
+            "small": "表"
+          },
+          "page": 1,
+          "tags": [
+            "構文",
+            "GFM"
+          ],
+          "description": "表とタスクリストの表示例。",
+          "children": []
+        },
+        {
+          "name": "admonitions.md",
+          "path": "reference/admonitions.md",
+          "kind": "markdown",
+          "title": "注意ブロック",
+          "categories": {
+            "large": "リファレンス",
+            "medium": "独自構文",
+            "small": "注意ブロック"
+          },
+          "page": 1,
+          "tags": [
+            "情報",
+            "注意"
+          ],
+          "description": "info、warning、successの注意ブロック例。",
+          "children": []
+        }
+      ]
+    },
+    {
+      "name": "sample.md",
+      "path": "sample.md",
+      "kind": "markdown",
+      "title": "Markdownテーマ設計",
+      "categories": {
+        "large": "設計",
+        "medium": "表示",
+        "small": "Markdown"
+      },
+      "page": 1,
+      "tags": [
+        "テーマ"
+      ],
+      "description": "Markdownの内容と表示テーマの分離を説明する文書。",
+      "children": []
+    }
+  ]
+}
