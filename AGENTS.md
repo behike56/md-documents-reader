@@ -3,7 +3,8 @@
 ## 対象
 
 - このファイルはリポジトリ全体に適用する。
-- Rust クレートは `md-documents-reader/` にある。
+- Rust バックエンドクレートは `backend/` にある。
+- Svelteフロントエンドは `frontend/` にある。
 
 ## 作業方針
 
@@ -17,9 +18,10 @@
 変更後は、リポジトリルートから次のコマンドを実行する。
 
 ```bash
-cargo fmt --manifest-path md-documents-reader/Cargo.toml --all -- --check
-cargo clippy --manifest-path md-documents-reader/Cargo.toml --all-targets --all-features -- -D warnings
-cargo check --manifest-path md-documents-reader/Cargo.toml --all-targets --all-features
+npm --prefix frontend run build
+cargo fmt --manifest-path backend/Cargo.toml --all -- --check
+cargo clippy --manifest-path backend/Cargo.toml --all-targets --all-features -- -D warnings
+cargo check --manifest-path backend/Cargo.toml --all-targets --all-features
 ```
 
 実行できない確認がある場合は、理由と未確認範囲を報告する。
