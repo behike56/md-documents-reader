@@ -2,7 +2,10 @@ CARGO_MANIFEST := backend/Cargo.toml
 FRONTEND_DIR := frontend
 TAURI_CLI := ../frontend/node_modules/.bin/tauri
 
-.PHONY: check frontend-check backend-check fmt fmt-check install lint run test
+.PHONY: app check frontend-check backend-check fmt fmt-check install lint run test
+
+app:
+	cd backend && $(TAURI_CLI) build --bundles app
 
 check: frontend-check backend-check
 

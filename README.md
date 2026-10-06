@@ -51,6 +51,16 @@ make test
 
 `frontend` の開発起動・ビルド時には一覧JSONを自動生成します。手動で更新する場合は `npm --prefix frontend run generate:index` を実行します。
 
+## 自分の Mac にインストール
+
+macOS で `make install` を実行してから、アプリをビルドします。
+
+```bash
+make app
+```
+
+生成された `backend/target/release/bundle/macos/Markdown Reader.app` を Finder で「アプリケーション」フォルダへコピーして起動します。文書はアプリに同梱されるため、ビルド後はリポジトリを移動しても読めます。Apple Developer ID による署名・公証は設定していないため、この手順は自分の Mac で使うことを想定しています。
+
 ## PoCの範囲
 
 - `backend/content/` のMarkdownファイルから階層構造JSONを生成し、大・中・小カテゴリとページ番号を一覧表示する

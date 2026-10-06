@@ -8,7 +8,7 @@ use serde::Serialize;
 
 use crate::document::{Categories, Document, parse_document};
 
-const CONTENT_ROOT: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/content");
+const SOURCE_CONTENT_ROOT: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/content");
 const INDEX_PATH: &str = concat!(
     env!("CARGO_MANIFEST_DIR"),
     "/../frontend/src/generated/content-index.json"
@@ -46,7 +46,11 @@ enum ContentKind {
 }
 
 fn list_content() -> Result<Vec<ContentEntry>, String> {
-    scan_directory(Path::new(CONTENT_ROOT), Path::new(""), &mut BTreeMap::new())
+    scan_directory(
+        Path::new(SOURCE_CONTENT_ROOT),
+        Path::new(""),
+        &mut BTreeMap::new(),
+    )
 }
 
 pub fn write_content_index() -> Result<(), String> {
@@ -158,7 +162,7 @@ fn is_markdown(path: &Path) -> bool {
         .is_some_and(|extension| extension.eq_ignore_ascii_case("md"))
 }
 
-pub fn load_document(relative_path: &str) -> Result<Document, String> {
+pub fn load_document(content_root: &Path, relative_path: &str) -> Result<Document, String> {
     let relative = Path::new(relative_path);
     if relative.as_os_str().is_empty()
         || !relative
@@ -169,7 +173,7 @@ pub fn load_document(relative_path: &str) -> Result<Document, String> {
         return Err("無効なMarkdownファイルのパスです".to_owned());
     }
 
-    let mut path = PathBuf::from(CONTENT_ROOT);
+    let mut path = PathBuf::from(content_root);
     for part in relative.components() {
         path.push(part);
         if fs::symlink_metadata(&path)
@@ -192,7 +196,9 @@ mod tests {
         time::{SystemTime, UNIX_EPOCH},
     };
 
-    use super::{ContentIndex, ContentKind, list_content, load_document, scan_directory};
+    use super::{
+        ContentIndex, ContentKind, SOURCE_CONTENT_ROOT, list_content, load_document, scan_directory,
+    };
 
     #[test]
     fn represents_only_markdown_files_in_nested_directories() {
@@ -292,7 +298,9 @@ mod tests {
         let entries = list_content().unwrap();
         assert!(entries.iter().any(|entry| entry.path == "sample.md"));
         assert_eq!(
-            load_document("sample.md").unwrap().title,
+            load_document(std::path::Path::new(SOURCE_CONTENT_ROOT), "sample.md")
+                .unwrap()
+                .title,
             "Markdownテーマ設計"
         );
     }
@@ -306,7 +314,24 @@ mod tests {
             "sample.md/../sample.md",
             "image.png",
         ] {
-            assert!(load_document(path).is_err(), "{path}");
+            assert!(
+                load_document(std::path::Path::new(SOURCE_CONTENT_ROOT), path).is_err(),
+                "{path}"
+            );
         }
+    }
+
+    #[test]
+    fn loads_document_from_a_moved_content_directory() {
+        let root = std::env::temp_dir().join(format!("md-reader-bundle-{}", std::process::id()));
+        fs::create_dir_all(&root).unwrap();
+        fs::write(root.join("sample.md"), include_str!("../content/sample.md")).unwrap();
+
+        assert_eq!(
+            load_document(&root, "sample.md").unwrap().title,
+            "Markdownテーマ設計"
+        );
+
+        fs::remove_dir_all(root).unwrap();
     }
 }
